@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+# Define multiple services 
+
+# FrontEnd
+  app:
+    build: ./frontend
+    ports:
+      - 80:5173
+    volumes:
+      - ./frontend/src:/app/src
+    environment:
+      VITE_API_URL: http://localhost:3000
+
+# Backend API
+  api:
+    build: ./backend
+    ports:
+      - 3000:3000
+    environment:
+      DB_URL: mongodb://db/persistence #  DB for API
+    volumes:
+      - ./backend/app:/app/app
+    depends_on:
+      - db
+
+# Only for TEST environment
+  api-tests:
+    image: holamundo-api
+    environment:
+      DB_URL: mongodb://db/persistencetest
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/tests:/app/tests
+    depends_on:
+      - db
+    command: npm test
+
+# Database
+  db:
+    image: mongo:5.0.19-focal
+    ports:
+      - 27017:27017
+    volumes:
+      - persistence:/data/db #  Default Mongodb path to store data 
+
+# For persistent storing of data
+volumes:
+  persistence:
